@@ -4604,7 +4604,9 @@ def model_add_water_source_hp(model, thermal_zones, condenser_loop, ventilation=
     return water_to_air_hp_systems
 
 
-def model_add_zone_erv(model, thermal_zones):
+def model_add_zone_erv(
+    model, thermal_zones, sensible_heat_recovery=0.76, latent_heat_recovery=0.68
+):
     """Adds zone level ERVs for each zone.
 
     Args:
@@ -4630,11 +4632,15 @@ def model_add_zone_erv(model, thermal_zones):
         heat_exchanger = create_hx_air_to_air_sensible_and_latent(
             model, name='{} ERV HX'.format(zone_name), type='Plate',
             economizer_lockout=False, supply_air_outlet_temperature_control=False,
-            sensible_heating_100_eff=0.76, latent_heating_100_eff=0.68,
-            sensible_cooling_100_eff=0.76, latent_cooling_100_eff=0.68,)
+            sensible_heating_100_eff=sensible_heat_recovery,
+            latent_heating_100_eff=latent_heat_recovery,
+            sensible_cooling_100_eff=sensible_heat_recovery,
+            latent_cooling_100_eff=latent_heat_recovery
+        )
 
         zone_hvac = openstudio_model.ZoneHVACEnergyRecoveryVentilator(
-            model, heat_exchanger, supply_fan, exhaust_fan)
+            model, heat_exchanger, supply_fan, exhaust_fan
+        )
         zone_hvac.setName('{} ERV'.format(zone_name))
         zone_hvac.setVentilationRateperUnitFloorArea(min_oa_flow_m3_per_s_per_m2)
         zone_hvac.setController(erv_controller)
